@@ -16,7 +16,7 @@ namespace Simplex
 
         public static void PopulateLastRow<T>(this T[,] arr, T[] values)
         {
-            var lastRow = arr.GetLength(0);
+            var lastRow = arr.GetUpperBound(0);
             for (int i = 0; i < arr.GetLength(1); i++)
             {
                 arr[lastRow, i] = values[i];
@@ -85,6 +85,72 @@ namespace Simplex
                 {
                     result[i, x] = original[i, x];
                 }
+            }
+            return result;
+        }
+
+
+        
+
+
+        public static double[,] TrimColumnArray(int columnToRemove, double[,] originalArray)
+        {
+            double[,] result = new double[originalArray.GetLength(0), originalArray.GetLength(1)- 1];
+
+            for (int i = 0, j = 0; i < originalArray.GetLength(0); i++)
+            {
+                for (int k = 0, u = 0; k < originalArray.GetLength(1); k++)
+                {
+                    if (k == columnToRemove)
+                        continue;
+
+                    result[j, u] = originalArray[i, k];
+                    u++;
+                }
+                j++;
+            }
+            return result;
+        }
+
+
+        public static double[,] TrimArray(int rowToRemove, int columnToRemove, double[,] originalArray)
+        {
+            double[,] result = new double[originalArray.GetLength(0) - 1, originalArray.GetLength(1) - 1];
+
+            for (int i = 0, j = 0; i < originalArray.GetLength(0); i++)
+            {
+                if (i == rowToRemove)
+                    continue;
+
+                for (int k = 0, u = 0; k < originalArray.GetLength(1); k++)
+                {
+                    if (k == columnToRemove)
+                        continue;
+
+                    result[j, u] = originalArray[i, k];
+                    u++;
+                }
+                j++;
+            }
+
+            return result;
+        }
+
+        public static double[,] TrimRowArray(int rowToRemove, double[,] originalArray)
+        {
+            double[,] result = new double[originalArray.GetLength(0) - 1, originalArray.GetLength(1)];
+
+            for (int i = 0, j = 0; i < originalArray.GetLength(0); i++)
+            {
+                if (i == rowToRemove)
+                    continue;
+
+                for (int k = 0, u = 0; k < originalArray.GetLength(1); k++)
+                {
+                    result[j, u] = originalArray[i, k];
+                    u++;
+                }
+                j++;
             }
             return result;
         }

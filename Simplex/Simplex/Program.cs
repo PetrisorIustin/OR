@@ -14,7 +14,11 @@ namespace Simplex
                 { 3, 2, 14},
                 { 2, -4, 2 },
                 { 4, 3, 19 },
-            } };
+                
+            },
+                Z = new double []{ 2, 3 }
+
+            };
 
             var s1 = new TwoPhaseSimplex(o1);
             s1.Solve();

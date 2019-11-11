@@ -9,7 +9,7 @@ namespace Simplex
     {
         public EqType[] GreaterThanEq { get; set; }
         public double[,] Table { get; set; }
-        public double[] z { get; set; }
+        public double[] Z { get; set; }
 
     }
 
@@ -29,6 +29,16 @@ namespace Simplex
         RHS
     }
 
+    public struct Variable {
+        public int Number { get; set; }
+        public VarType VarType { get; set; }
+        public Variable(int number, VarType varType)
+        {
+            Number = number;
+            VarType = varType;
+        }
+    }
+
 
 
 
@@ -39,19 +49,25 @@ namespace Simplex
     {
         private double[,] initialA;
         private readonly EqType[] eqTypes;
-        public List<VarType> ColumnVarTypes { get; set; }
-        public List<VarType> RowVarTypes { get; set; }
+        public List<Variable> ColumnVarTypes { get; set; }
+        public List<Variable> RowVarTypes { get; set; }
+        public List<int> VarNumber { get; set; }
         private readonly int m;
         private readonly int n;
-        private readonly double[] z;
+        private readonly double[] Z;
         public TwoPhaseSimplex(Options options)
         {
             initialA = options.Table;
             eqTypes = options.GreaterThanEq;
             m = initialA.GetLength(0) - 1;
             n = initialA.GetLength(1) - 1;
-            ColumnVarTypes = Enumerable.Repeat(VarType.Primary, n).ToList();
-            RowVarTypes = new List<VarType>();
+            ColumnVarTypes = new List<Variable>();
+            for (int i = 0; i < n; i++)
+            {
+                ColumnVarTypes.Add(new Variable(i,VarType.Primary));
+            }
+            RowVarTypes = new List<Variable>();
+            Z = options.Z;
         }
 
         
@@ -74,29 +90,125 @@ namespace Simplex
             else
             {
                 Console.WriteLine("The problem has feasable solution");
-                if(ColumnVarTypes.Count(x => x == VarType.Artifical) == 0)
-                {
-                    var afterPhaseOneA = CalculateAAfterPhaseOne(sol);
-                    var finalSolution = Phase1(afterPhaseOneA, afterPhaseOneA.GetLength(0) - 1, afterPhaseOneA.GetLength(1) - 1);
-                }
+                var afterPhaseOneA = CalculateAAfterPhaseOne(sol);
+                _PrintSolution(afterPhaseOneA, ColumnVarTypes, RowVarTypes);
+                var finalSolution = Phase2(afterPhaseOneA, afterPhaseOneA.GetLength(0) - 1, afterPhaseOneA.GetLength(1) - 1);
+                _PrintSolution(finalSolution, ColumnVarTypes, RowVarTypes);
             }
-            _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
+             // _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
         }
+
 
         private double[,] CalculateAAfterPhaseOne(double[,] sol)
         {
-            throw new NotImplementedException();
+            for (var i = 0; i <= sol.GetLength(1) - 1; i++)
+            {
+                if(ColumnVarTypes[i].VarType == VarType.Artifical)
+                {
+                    sol = Utils.TrimColumnArray(i, sol);
+                    ColumnVarTypes.RemoveAt(i);
+                }
+            }
+            _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
+            var newZ = new double[sol.GetLength(1)];
+            var newZ2 = new double[sol.GetLength(1)];
+            for (var i = 0; i < Z.Length; i++)
+            {
+                newZ[i] = Z[i];
+            }
+            for (var i = Z.Length; i < sol.GetLength(1); i++)
+            {
+                newZ[i] = 0;
+            }
+
+            
+            for (var i = 0; i < newZ.Length; i++)
+            {
+                var sum = 0.0;
+                for (var j = 0; j < sol.GetUpperBound(0); j++)
+                {
+                    var col = RowVarTypes[j].Number;
+                    sum = sum + newZ[col] * sol[j, i];
+                }
+                newZ2[i] = -sum + newZ[i];
+            }
+            Utils.PopulateLastRow(sol, newZ2);
+            return sol;
         }
 
         private bool StillArtificialVariablesInBase()
         {
-            return ColumnVarTypes.Count(x => x == VarType.Artifical) == 0;
+            return ColumnVarTypes.Count(x => x.VarType == VarType.Artifical) == 0;
         }
 
         public double[,] Phase1(double [,] initialA, int m, int n)
         {
-            while (LessThanZero(initialA, m, n))
+            while (LessThanZero(initialA, m, n) || StillArtificialVariablesInBase())
             {
+                if(!LessThanZero(initialA, m, n) && StillArtificialVariablesInBase())
+                {
+                    for (var l = 0; l < n; l++)
+                    {
+                        if (RowVarTypes[l].VarType == VarType.Artifical)
+                        {
+                            if (AllColumnsAreZero(initialA, l, m, n))
+                            {
+                                Console.WriteLine("The problem has no optimum solution (although it has feasible solutions), i.e. the objective functions is unbounded");
+                                return initialA;
+                            }
+                            int k = 0;
+
+                            for (var i = 0; i <= m; i++)
+                            {
+                                if (i == m && (ColumnVarTypes[i].VarType == VarType.Artifical || initialA[i, l] == 0))
+                                {
+                                    Utils.TrimArray(l, i, initialA);
+                                    RowVarTypes.RemoveAt(i);
+                                    ColumnVarTypes.RemoveAt(l);
+                                    m--;
+                                    n--;
+                                    continue;
+                                }
+                                if (ColumnVarTypes[i].VarType == VarType.Artifical || initialA[i, l] == 0)
+                                {
+                                    continue;
+                                }
+                                k = i;
+                                RowVarTypes[k] = ColumnVarTypes[l];
+                                for (var j = 0; j <= n; j++)
+                                {
+                                    if (j == l)
+                                    {
+                                        continue;
+                                    }
+                                    initialA[i, j] = (initialA[i, j] * initialA[k, l] - initialA[i, l] * initialA[k, j]) / initialA[k, l];
+                                }
+                            }
+
+                            for (var i = 0; i <= m; i++)
+                            {
+                                if (i == k)
+                                {
+                                    continue;
+                                }
+                                initialA[i, l] = 0;
+                            }
+
+                            for (var j = 0; j <= n; j++)
+                            {
+                                if (j == l)
+                                {
+                                    continue;
+                                }
+                                initialA[k, j] = initialA[k, j] / initialA[k, l];
+                            }
+                            initialA[k, l] = 1;
+                            break;
+                        }
+                    }
+                    continue;
+                }
+
                 _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
                 for (var l = 0; l < n; l++)
                 {
@@ -214,6 +326,8 @@ namespace Simplex
         public double[,] AddAuxiliarVariables()
         {
             double[,] A1 = Utils.Copy(initialA);
+            int primaryV = initialA.GetUpperBound(1);
+            int artV = 0;
             for (int i = 0; i < initialA.GetLength(0); i++)
             {
                 if (eqTypes[i] == EqType.GreatherThan)
@@ -222,13 +336,14 @@ namespace Simplex
                     addedColumn.Populate(0);
                     addedColumn[i] = -1;
                     A1 = Utils.AddColumn(A1, addedColumn, A1.GetLength(1) - 1);
-                    ColumnVarTypes.Add(VarType.Slack);
+                    ColumnVarTypes.Add(new Variable(primaryV++, VarType.Slack));
                     addedColumn = new double[m + 1];
                     addedColumn.Populate(0);
                     addedColumn[i] = 1;
                     A1 = Utils.AddColumn(A1, addedColumn, A1.GetLength(1) - 1);
-                    ColumnVarTypes.Add(VarType.Artifical);
-                    RowVarTypes.Add(VarType.Artifical);
+                    ColumnVarTypes.Add(new Variable(artV++, VarType.Artifical));
+                    artV--;
+                    RowVarTypes.Add(new Variable(artV++, VarType.Artifical));
                 }
                 if (eqTypes[i] == EqType.LessThan)
                 {
@@ -236,8 +351,9 @@ namespace Simplex
                     addedColumn.Populate(0);
                     addedColumn[i] = 1;
                     A1 = Utils.AddColumn(A1, addedColumn, A1.GetLength(1) - 1);
-                    ColumnVarTypes.Add(VarType.SlackArtifical);
-                    RowVarTypes.Add(VarType.Slack);
+                    ColumnVarTypes.Add(new Variable(primaryV++,VarType.SlackArtifical));
+                    primaryV--;
+                    RowVarTypes.Add(new Variable(primaryV++, VarType.SlackArtifical));
                 }
                 if (eqTypes[i] == EqType.Equal)
                 {
@@ -245,12 +361,13 @@ namespace Simplex
                     addedColumn.Populate(0);
                     addedColumn[i] = 1;
                     A1 = Utils.AddColumn(A1, addedColumn, A1.GetLength(1) - 1);
-                    ColumnVarTypes.Add(VarType.Artifical);
-                    RowVarTypes.Add(VarType.Artifical);
+                    ColumnVarTypes.Add(new Variable(artV++, VarType.Artifical));
+                    artV--;
+                    RowVarTypes.Add(new Variable(artV++, VarType.Artifical));
                 }
             }
-            ColumnVarTypes.Add(VarType.RHS);
-            RowVarTypes.Add(VarType.RHS);
+            ColumnVarTypes.Add(new Variable(100, VarType.RHS));
+            RowVarTypes.Add(new Variable(100, VarType.RHS));
             return A1;
         }
 
@@ -261,7 +378,7 @@ namespace Simplex
             for (int i = 0; i < t.GetLength(1); i++)
             {
                 var sum = 0.0;
-                if(ColumnVarTypes[i] == VarType.Artifical || ColumnVarTypes[i] == VarType.SlackArtifical)
+                if(ColumnVarTypes[i].VarType == VarType.Artifical || ColumnVarTypes[i].VarType == VarType.SlackArtifical)
                 {
                     zRow[i] = 0;
                     continue;
@@ -302,7 +419,7 @@ namespace Simplex
 
         private bool AllColumnsAreZero(double[,] initialA, int h, int m, int n)
         {
-            for (var i = 0; i < m - 1; i++)
+            for (var i = 0; i < m; i++)
             {
                 if (initialA[i, h] > 0)
                 {
@@ -334,7 +451,7 @@ namespace Simplex
             _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
         }
 
-        private void _PrintSolution(double [,] t, List<VarType> columnVarTypes, List<VarType> rowVarTypes)
+        private void _PrintSolution(double [,] t, List<Variable> columnVarTypes, List<Variable> rowVarTypes)
         {
             var j = 1;
             var k = 1;
@@ -342,17 +459,17 @@ namespace Simplex
             for (int i = 0; i < columnVarTypes.Count; i++)
             {
                 string x;
-                if(columnVarTypes[i] == VarType.Artifical)
+                if(columnVarTypes[i].VarType == VarType.Artifical)
                 {
-                    x = $"y{k}";
+                    x = $"y{columnVarTypes[i].Number+1}";
                     ++k;
                 }
-                else if(columnVarTypes[i] == VarType.RHS)
+                else if(columnVarTypes[i].VarType == VarType.RHS)
                 {
                     x = $"RHS";
                 }else
                 {
-                    x = $"x{j}";
+                    x = $"x{columnVarTypes[i].Number + 1}";
                     j++;
                 }
                 Console.Write(x + "\t");
@@ -361,21 +478,21 @@ namespace Simplex
             Console.WriteLine();
             for (int i = 0; i < t.GetLength(0); i++)
             {
-                if (rowVarTypes[i] == VarType.Artifical)
+                if (rowVarTypes[i].VarType == VarType.Artifical)
                 {
-                    Console.Write("y\t");
+                    Console.Write($"y{rowVarTypes[i].Number + 1}\t");
                 }
-                else if(rowVarTypes[i] == VarType.RHS)
+                else if(rowVarTypes[i].VarType == VarType.RHS)
                 {
                     Console.Write("z\t");
                 }
                 else
                 {
-                    Console.Write("x\t");
+                    Console.Write($"x{rowVarTypes[i].Number + 1}\t");
                 }
                 for (j = 0; j < t.GetLength(1); j++)
                 {
-                    Console.Write(t[i, j] + "\t");
+                    Console.Write(t[i, j].ToString("0.##") + "\t");
                 }
                 Console.WriteLine();
             }
