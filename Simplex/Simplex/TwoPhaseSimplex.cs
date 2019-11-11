@@ -85,6 +85,7 @@ namespace Simplex
             if(sol[sol.GetUpperBound(0), sol.GetUpperBound(1)] != 0)
             {
                 Console.WriteLine("The problem has no feasable solution");
+                _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
                 return;
             }
             else
@@ -107,6 +108,7 @@ namespace Simplex
                 {
                     sol = Utils.TrimColumnArray(i, sol);
                     ColumnVarTypes.RemoveAt(i);
+                    i--;
                 }
             }
             _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
@@ -138,20 +140,21 @@ namespace Simplex
 
         private bool StillArtificialVariablesInBase()
         {
-            return ColumnVarTypes.Count(x => x.VarType == VarType.Artifical) == 0;
+            return RowVarTypes.Count(x => x.VarType == VarType.Artifical) != 0;
         }
 
         public double[,] Phase1(double [,] initialA, int m, int n)
         {
-            while (LessThanZero(initialA, m, n) || StillArtificialVariablesInBase())
+            while (LessThanZero(initialA, m, n) || (StillArtificialVariablesInBase() && initialA[m, n] == 0))
             {
-                if(!LessThanZero(initialA, m, n) && StillArtificialVariablesInBase())
+                _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
+                if (!LessThanZero(initialA, m, n) && initialA[m,n] == 0 && StillArtificialVariablesInBase())
                 {
                     for (var l = 0; l < n; l++)
                     {
-                        if (RowVarTypes[l].VarType == VarType.Artifical)
+                        if (ColumnVarTypes[l].VarType == VarType.Artifical)
                         {
-                            if (AllColumnsAreZero(initialA, l, m, n))
+                            if (AllColumnsAreLessOrEqualToZero(initialA, l, m, n))
                             {
                                 Console.WriteLine("The problem has no optimum solution (although it has feasible solutions), i.e. the objective functions is unbounded");
                                 return initialA;
@@ -209,12 +212,11 @@ namespace Simplex
                     continue;
                 }
 
-                _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
                 for (var l = 0; l < n; l++)
                 {
                     if (initialA[m, l] < 0)
                     {
-                        if (AllColumnsAreZero(initialA, l, m, n))
+                        if (AllColumnsAreLessOrEqualToZero(initialA, l, m, n))
                         {
                             Console.WriteLine("The problem has no optimum solution (although it has feasible solutions), i.e. the objective functions is unbounded");
                             return initialA;
@@ -233,6 +235,10 @@ namespace Simplex
                                 if (j == l)
                                 {
                                     continue;
+                                }
+                                if(i == 2 && j == 5)
+                                {
+                                    var asda = 0;
                                 }
                                 initialA[i, j] = (initialA[i, j] * initialA[k, l] - initialA[i, l] * initialA[k, j]) / initialA[k, l];
                             }
@@ -260,6 +266,7 @@ namespace Simplex
                     }
                 }
             }
+            _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
             return initialA;
         }
 
@@ -272,7 +279,7 @@ namespace Simplex
                 {
                     if (initialA[m, l] < 0)
                     {
-                        if (AllColumnsAreZero(initialA, l, m, n))
+                        if (AllColumnsAreLessOrEqualToZero(initialA, l, m, n))
                         {
                             Console.WriteLine("The problem has no optimum solution (although it has feasible solutions), i.e. the objective functions is unbounded");
                             return initialA;
@@ -417,9 +424,9 @@ namespace Simplex
             return false;
         }
 
-        private bool AllColumnsAreZero(double[,] initialA, int h, int m, int n)
+        private bool AllColumnsAreLessOrEqualToZero(double[,] initialA, int h, int m, int n)
         {
-            for (var i = 0; i < m; i++)
+            for (var i = 0; i < m-1; i++)
             {
                 if (initialA[i, h] > 0)
                 {
