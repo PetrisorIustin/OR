@@ -8,15 +8,40 @@ namespace Simplex
 
         static void Main(string[] args)
         {
-            var o1 = new Options() {
-                GreaterThanEq = new EqType[] { EqType.Equal, EqType.GreatherThan, EqType.LessThan},
+            DualSimplex();
+
+            Console.ReadLine();
+        }
+
+
+
+        static void DualSimplex()
+        {
+            var s1 = new DualSimplex(new double[,] {
+                    { -2, 2, 5, 4, 1, 0, 0, -25 },
+                    { 7, 2, 6, -2, 0, 1, 0, 35 },
+                    { -4, -5, 3, 2, 0, 0, 1, -15 },
+                    { 2, 2, 4, 5, 0, 0, 0, 0 }
+                }
+                );
+            s1.Solve();
+            s1.PrintSolution();
+        }
+
+
+
+        static void TwoPhase()
+        {
+            var o1 = new Options()
+            {
+                GreaterThanEq = new EqType[] { EqType.Equal, EqType.GreatherThan, EqType.LessThan },
                 Table = new double[,] {
                 { 3, 2, 14},
                 { 2, -4, 2 },
                 { 4, 3, 19 },
-                
+
             },
-                Z = new double []{ 2, 3 }
+                Z = new double[] { 2, 3 }
 
             };
             //var s1 = new TwoPhaseSimplex(o1);
@@ -40,7 +65,7 @@ namespace Simplex
 
             var o_b = new Options()
             {
-                GreaterThanEq = new EqType[] { EqType.Equal, EqType.Equal},
+                GreaterThanEq = new EqType[] { EqType.Equal, EqType.Equal },
                 Table = new double[,] {
                 { 2, 1, 1, 4},
                 { 1, 1, 2, 2 }
@@ -53,7 +78,7 @@ namespace Simplex
 
             var o_c = new Options()
             {
-                GreaterThanEq = new EqType[] { EqType.Equal, EqType.Equal, EqType.Equal},
+                GreaterThanEq = new EqType[] { EqType.Equal, EqType.Equal, EqType.Equal },
                 Table = new double[,] {
                 { 1, 2, -1, 1, 0},
                 { 2, -2, 3, 3, 9},
@@ -76,8 +101,6 @@ namespace Simplex
             };
             var s_4 = new TwoPhaseSimplex(o_4);
             //s_4.Solve();
-
-            Console.ReadLine();
         }
 
     }
