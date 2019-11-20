@@ -25,7 +25,17 @@ namespace Simplex
                 }
                 );
             s1.Solve();
-            s1.PrintSolution();
+
+
+            var s2 = new DualSimplex(new double[,] {
+                    { -1, -3, -1, 1, 0, 0, -3 },
+                    { -2, 0, -4, 0, 1, 0, -3 },
+                    { -1, -2, 0, 0, 0, 1, -5 },
+                    { 430, 450, 420, 0, 0, 0, 0 }
+                }
+                );
+            s2.Solve();
+            s2.PrintSolution();
         }
 
 

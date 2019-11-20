@@ -19,6 +19,7 @@ namespace Simplex
         {
             while (LessThanZero())
             {
+                Console.WriteLine("Matrice sistem");
                 PrintSolution();
                 for (var k = 0; k < m; k++)
                 {
@@ -26,7 +27,7 @@ namespace Simplex
                     {
                         if (AllColumnsAreZero(k))
                         {
-                            Console.WriteLine("The problem has no optimum solution (although it has feasible solutions), i.e. the objective functions is unbounded");
+                            Console.WriteLine("The problem has no optimum solution - and its dual is unbounded.");
                             return;
                         }
                         int l = FindMin(k);
@@ -93,7 +94,7 @@ namespace Simplex
         {
             for (var i = 0; i < n; i++)
             {
-                if (t[k, i] > 0)
+                if (t[k, i] < 0)
                 {
                     return false;
                 }
@@ -101,16 +102,16 @@ namespace Simplex
             return true;
         }
 
-        private int FindMin(int l)
+        private int FindMin(int k)
         {
             int index = 0;
             double min = int.MaxValue;
-            for (var k = 0; k < m; k++)
+            for (var l = 0; l < n; l++)
             {
-                var value = Math.Abs(t[k, n] / t[k, l]);
+                var value = Math.Abs(t[m, l] / t[k, l]);
                 if (min > value && value < 0)
                 {
-                    index = k;
+                    index = l;
                     min = value;
                 }
             }
