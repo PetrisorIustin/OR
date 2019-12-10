@@ -42,6 +42,10 @@ namespace Simplex
 
 
 
+    public struct Solution {
+        public double[] X { get; set; }
+        public double Z { get; set; }
+    }
 
 
 
@@ -72,7 +76,7 @@ namespace Simplex
 
         
 
-        public void Solve()
+        public Solution? Solve()
         {
             var A1 = AddAuxiliarVariables();
 
@@ -86,7 +90,7 @@ namespace Simplex
             {
                 Console.WriteLine("The problem has no feasable solution");
                 _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
-                return;
+                return null;
             }
             else
             {
@@ -95,6 +99,7 @@ namespace Simplex
                 _PrintSolution(afterPhaseOneA, ColumnVarTypes, RowVarTypes);
                 var finalSolution = Phase2(afterPhaseOneA, afterPhaseOneA.GetLength(0) - 1, afterPhaseOneA.GetLength(1) - 1);
                 _PrintSolution(finalSolution, ColumnVarTypes, RowVarTypes);
+                return new Solution();
             }
              // _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
         }

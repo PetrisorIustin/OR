@@ -17,14 +17,14 @@ namespace Simplex
 
         static void DualSimplex()
         {
-            var s1 = new DualSimplex(new double[,] {
-                    { -2, 2, 5, 4, 1, 0, 0, -25 },
-                    { 7, 2, 6, -2, 0, 1, 0, 35 },
-                    { -4, -5, 3, 2, 0, 0, 1, -15 },
-                    { 2, 2, 4, 5, 0, 0, 0, 0 }
-                }
-                );
-            s1.Solve();
+            //var s1 = new DualSimplex(new double[,] {
+            //        { -2, 2, 5, 4, 1, 0, 0, -25 },
+            //        { 7, 2, 6, -2, 0, 1, 0, 35 },
+            //        { -4, -5, 3, 2, 0, 0, 1, -15 },
+            //        { 2, 2, 4, 5, 0, 0, 0, 0 }
+            //    }
+            //    );
+            //s1.Solve();
 
 
             var s2 = new DualSimplex(new double[,] {

@@ -34,13 +34,13 @@ namespace Simplex
 
                         for (var i = 0; i <= m; i++)
                         {
-                            if (i == l)
+                            if (i == k)
                             {
                                 continue;
                             }
                             for (var j = 0; j <= n; j++)
                             {
-                                if (j == k)
+                                if (j == l)
                                 {
                                     continue;
                                 }
@@ -108,14 +108,21 @@ namespace Simplex
             double min = int.MaxValue;
             for (var l = 0; l < n; l++)
             {
+                if(t[k, l] == 0)
+                {
+                    continue;
+                }
                 var value = Math.Abs(t[m, l] / t[k, l]);
-                if (min > value && value < 0)
+                if (min > value && value > 0)
                 {
                     index = l;
                     min = value;
                 }
             }
+            Console.WriteLine($"{k},{index},min= {min}");
+
             return index;
+
         }
 
 
