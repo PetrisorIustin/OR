@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Simplex
@@ -8,7 +9,8 @@ namespace Simplex
 
         static void Main(string[] args)
         {
-            DualSimplex();
+            // DualSimplex();
+            BranchAndBound();
 
             Console.ReadLine();
         }
@@ -44,14 +46,13 @@ namespace Simplex
         {
             var o1 = new Options()
             {
-                GreaterThanEq = new EqType[] { EqType.Equal, EqType.GreatherThan, EqType.LessThan },
+                GreaterThanEq = new List<EqType> { EqType.LessThan, EqType.LessThan },
                 Table = new double[,] {
-                { 3, 2, 14},
-                { 2, -4, 2 },
-                { 4, 3, 19 },
+                { 1, -2, 2, 6},
+                { 1, 1, 2, 8},
 
             },
-                Z = new double[] { 2, 3 }
+                Z = new double[] { 1, -1, 2 }
 
             };
             //var s1 = new TwoPhaseSimplex(o1);
@@ -61,7 +62,7 @@ namespace Simplex
 
             var o_a = new Options()
             {
-                GreaterThanEq = new EqType[] { EqType.GreatherThan, EqType.LessThan },
+                GreaterThanEq = new List<EqType> { EqType.GreatherThan, EqType.LessThan },
                 Table = new double[,] {
                 { 1, 1, 6},
                 { 2, 3, 4 }
@@ -75,7 +76,7 @@ namespace Simplex
 
             var o_b = new Options()
             {
-                GreaterThanEq = new EqType[] { EqType.Equal, EqType.Equal },
+                GreaterThanEq = new List<EqType> { EqType.Equal, EqType.Equal },
                 Table = new double[,] {
                 { 2, 1, 1, 4},
                 { 1, 1, 2, 2 }
@@ -88,7 +89,7 @@ namespace Simplex
 
             var o_c = new Options()
             {
-                GreaterThanEq = new EqType[] { EqType.Equal, EqType.Equal, EqType.Equal },
+                GreaterThanEq = new List<EqType> { EqType.Equal, EqType.Equal, EqType.Equal },
                 Table = new double[,] {
                 { 1, 2, -1, 1, 0},
                 { 2, -2, 3, 3, 9},
@@ -102,7 +103,7 @@ namespace Simplex
 
             var o_4 = new Options()
             {
-                GreaterThanEq = new EqType[] { EqType.GreatherThan, EqType.LessThan },
+                GreaterThanEq = new List<EqType> { EqType.GreatherThan, EqType.LessThan },
                 Table = new double[,] {
                 { 1, 1, 2},
                 { 2, 2, 4},
@@ -113,6 +114,60 @@ namespace Simplex
             //s_4.Solve();
         }
 
+
+        static void BranchAndBound()
+        {
+            //var o1 = new Options()
+            //{
+            //    GreaterThanEq = new List<EqType> { EqType.LessThan, EqType.LessThan },
+            //    Table = new double[,] {
+            //    { 1, -2, 2, 6},
+            //    { 1, 1, 2, 8},
+
+            //},
+            //    Z = new double[] { 1, -1, 2 }
+
+            //};
+
+
+            //var s1 = new BranchAndBound.BranchAndBound(o1);
+            //s1.Solve();
+
+            //var o2 = new Options()
+            //{
+            //    GreaterThanEq = new List<EqType> { EqType.LessThan, EqType.LessThan },
+            //    Table = new double[,] {
+            //    { -1, 1, 0},
+            //    { 6, 2, 21},
+
+            //},
+            //    Z = new double[] { 2, 1, 1 }
+
+            //};
+
+
+            //var s2 = new BranchAndBound.BranchAndBound(o2);
+            //s2.Solve();
+
+
+
+            var o3 = new Options()
+            {
+                GreaterThanEq = new List<EqType> { EqType.LessThan, EqType.LessThan, EqType.LessThan },
+                Table = new double[,] {
+                { 1, 2, 1, -1, 8},
+                { 1, 2, 0, 2, 7},
+                { 4, 1, 3, 0, 8},
+
+            },
+                Z = new double[] { 1, 1, 1, 2 }
+
+            };
+
+
+            var s3 = new BranchAndBound.BranchAndBound(o3);
+            s3.Solve();
+        }
     }
 }
 

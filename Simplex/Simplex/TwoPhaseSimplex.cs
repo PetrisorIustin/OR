@@ -7,7 +7,7 @@ namespace Simplex
 {
     public class Options
     {
-        public EqType[] GreaterThanEq { get; set; }
+        public List<EqType> GreaterThanEq { get; set; }
         public double[,] Table { get; set; }
         public double[] Z { get; set; }
 
@@ -29,13 +29,15 @@ namespace Simplex
         RHS
     }
 
-    public struct Variable {
+    public class Variable {
         public int Number { get; set; }
         public VarType VarType { get; set; }
-        public Variable(int number, VarType varType)
+        public double Value { get; set; }
+        public Variable(int number, VarType varType, double value = 0.0)
         {
             Number = number;
             VarType = varType;
+            Value = value;
         }
     }
 
@@ -43,7 +45,7 @@ namespace Simplex
 
 
     public struct Solution {
-        public double[] X { get; set; }
+        public List<Variable> X { get; set; }
         public double Z { get; set; }
     }
 
@@ -52,15 +54,17 @@ namespace Simplex
     public class TwoPhaseSimplex
     {
         private double[,] initialA;
-        private readonly EqType[] eqTypes;
+        private readonly List<EqType> eqTypes;
         public List<Variable> ColumnVarTypes { get; set; }
         public List<Variable> RowVarTypes { get; set; }
         public List<int> VarNumber { get; set; }
         private readonly int m;
         private readonly int n;
         private readonly double[] Z;
+        public Options Options { get; set; }
         public TwoPhaseSimplex(Options options)
         {
+            Options = options;
             initialA = options.Table;
             eqTypes = options.GreaterThanEq;
             m = initialA.GetLength(0) - 1;
@@ -99,9 +103,35 @@ namespace Simplex
                 _PrintSolution(afterPhaseOneA, ColumnVarTypes, RowVarTypes);
                 var finalSolution = Phase2(afterPhaseOneA, afterPhaseOneA.GetLength(0) - 1, afterPhaseOneA.GetLength(1) - 1);
                 _PrintSolution(finalSolution, ColumnVarTypes, RowVarTypes);
-                return new Solution();
+                var z = finalSolution[finalSolution.GetUpperBound(0), finalSolution.GetUpperBound(1)];
+                return new Solution
+                {
+                    X = ConstructSolution(finalSolution),
+                    Z = z
+                };
             }
              // _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
+        }
+
+
+        public List<Variable> ConstructSolution(double[,] sol)
+        {
+            var x = new List<Variable>();
+            for (int i = 0; i < sol.GetUpperBound(1); i++)
+            {
+                Variable var = RowVarTypes.FirstOrDefault(r => r.Number == i);
+                if (var != null)
+                {
+                    var idx = RowVarTypes.IndexOf(var);
+                    x.Add(new Variable(i, var.VarType, sol[idx, sol.GetUpperBound(1)]));
+                }
+                else
+                {
+                    var idx = RowVarTypes.IndexOf(var);
+                    x.Add(new Variable(i, ColumnVarTypes.FirstOrDefault(c => c.Number == i).VarType, 0));
+                }
+            }
+            return x;
         }
 
 
@@ -431,7 +461,7 @@ namespace Simplex
 
         private bool AllColumnsAreLessOrEqualToZero(double[,] initialA, int h, int m, int n)
         {
-            for (var i = 0; i < m-1; i++)
+            for (var i = 0; i < m; i++)
             {
                 if (initialA[i, h] > 0)
                 {
