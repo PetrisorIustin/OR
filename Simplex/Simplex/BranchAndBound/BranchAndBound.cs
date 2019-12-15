@@ -38,6 +38,7 @@ namespace Simplex.BranchAndBound
                 }
                 var sol = _sol.GetValueOrDefault();
                 var z = sol.Z;
+                PrintSolution(sol.X, sol.Z);
                 if (z > z_bar)
                 {
                     if(sol.X.Where(x => x.VarType == VarType.Primary).All(xi => xi.Value == (int)xi.Value))
@@ -59,10 +60,10 @@ namespace Simplex.BranchAndBound
                             }
                         }
                         var chosen_variable = sol.X[index];
-                        var greaterThanEq1 = problem.Options.GreaterThanEq.Select(x => (EqType)x).ToList();
-                        var greaterThanEq2 = problem.Options.GreaterThanEq.Select(x => (EqType)x).ToList();
-                        greaterThanEq1.Add(EqType.LessThan);
-                        greaterThanEq2.Add(EqType.GreatherThan);
+                        var constraints1 = problem.Options.Constraints.Select(x => (EqType)x).ToList();
+                        var constraints2 = problem.Options.Constraints.Select(x => (EqType)x).ToList();
+                        constraints1.Add(EqType.LessThan);
+                        constraints2.Add(EqType.GreatherThan);
                         var table1 = Utils.Copy(problem.Options.Table);
                         var table2 = Utils.Copy(problem.Options.Table);
                         var row1 = new double[problem.Options.Table.GetLength(1)];
@@ -78,13 +79,13 @@ namespace Simplex.BranchAndBound
                         table2 = Utils.AddRow(table2, row2);
                         Options newProblem1 = new Options
                         {
-                            GreaterThanEq = greaterThanEq1,
+                            Constraints = constraints1,
                             Table = Utils.Copy(table1),
                             Z = problem.Options.Z
                         };
                         Options newProblem2 = new Options
                         {
-                            GreaterThanEq = greaterThanEq2,
+                            Constraints = constraints2,
                             Table = Utils.Copy(table2),
                             Z = problem.Options.Z
                         };
@@ -101,14 +102,19 @@ namespace Simplex.BranchAndBound
             }
             else
             {
-                x_bar.Where(x => x.VarType == VarType.Primary).ToList().ForEach(x =>
-                {
-                    Console.WriteLine($"x{x.Number+1}={x.Value}");
-                });
-                Console.WriteLine($"z={z_bar}");
+                PrintSolution(x_bar, z_bar);
             }
             
 
+        }
+
+        public void PrintSolution(List<Variable> l, double z)
+        {
+            l.Where(x => x.VarType == VarType.Primary).ToList().ForEach(x =>
+            {
+                Console.WriteLine($"x{x.Number + 1}={x.Value}");
+            });
+            Console.WriteLine($"z={z}");
         }
     }
 }

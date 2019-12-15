@@ -7,7 +7,7 @@ namespace Simplex
 {
     public class Options
     {
-        public List<EqType> GreaterThanEq { get; set; }
+        public List<EqType> Constraints { get; set; }
         public double[,] Table { get; set; }
         public double[] Z { get; set; }
 
@@ -66,15 +66,19 @@ namespace Simplex
         {
             Options = options;
             initialA = options.Table;
-            eqTypes = options.GreaterThanEq;
+            eqTypes = options.Constraints;
             m = initialA.GetLength(0) - 1;
             n = initialA.GetLength(1) - 1;
             ColumnVarTypes = new List<Variable>();
+            RowVarTypes = new List<Variable>();
             for (int i = 0; i < n; i++)
             {
                 ColumnVarTypes.Add(new Variable(i,VarType.Primary));
             }
-            RowVarTypes = new List<Variable>();
+            for (int i = 0; i <= m; i++)
+            {
+                RowVarTypes.Add(new Variable(i, VarType.Primary));
+            }
             Z = options.Z;
         }
 
@@ -82,6 +86,8 @@ namespace Simplex
 
         public Solution? Solve()
         {
+            Console.WriteLine("Initial Table");
+            _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
             var A1 = AddAuxiliarVariables();
 
             //_PrintSolution(A1);
@@ -93,15 +99,17 @@ namespace Simplex
             if(sol[sol.GetUpperBound(0), sol.GetUpperBound(1)] != 0)
             {
                 Console.WriteLine("The problem has no feasable solution");
-                _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
+                //_PrintSolution(sol, ColumnVarTypes, RowVarTypes);
                 return null;
             }
             else
             {
                 Console.WriteLine("The problem has feasable solution");
                 var afterPhaseOneA = CalculateAAfterPhaseOne(sol);
-                _PrintSolution(afterPhaseOneA, ColumnVarTypes, RowVarTypes);
+                // _PrintSolution(afterPhaseOneA, ColumnVarTypes, RowVarTypes);
                 var finalSolution = Phase2(afterPhaseOneA, afterPhaseOneA.GetLength(0) - 1, afterPhaseOneA.GetLength(1) - 1);
+
+                Console.WriteLine("Final Table");
                 _PrintSolution(finalSolution, ColumnVarTypes, RowVarTypes);
                 var z = finalSolution[finalSolution.GetUpperBound(0), finalSolution.GetUpperBound(1)];
                 return new Solution
@@ -146,7 +154,7 @@ namespace Simplex
                     i--;
                 }
             }
-            _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
+            // _PrintSolution(sol, ColumnVarTypes, RowVarTypes);
             var newZ = new double[sol.GetLength(1)];
             var newZ2 = new double[sol.GetLength(1)];
             for (var i = 0; i < Z.Length; i++)
@@ -182,7 +190,7 @@ namespace Simplex
         {
             while (LessThanZero(initialA, m, n) || (StillArtificialVariablesInBase() && initialA[m, n] == 0))
             {
-                _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
+                // _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
                 if (!LessThanZero(initialA, m, n) && initialA[m,n] == 0 && StillArtificialVariablesInBase())
                 {
                     for (var l = 0; l < n; l++)
@@ -301,7 +309,7 @@ namespace Simplex
                     }
                 }
             }
-            _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
+            // _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
             return initialA;
         }
 
@@ -309,7 +317,7 @@ namespace Simplex
         {
             while (LessThanZero(initialA, m, n))
             {
-                _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
+                // _PrintSolution(initialA, ColumnVarTypes, RowVarTypes);
                 for (var l = 0; l < n; l++)
                 {
                     if (initialA[m, l] < 0)
@@ -370,6 +378,7 @@ namespace Simplex
             double[,] A1 = Utils.Copy(initialA);
             int primaryV = initialA.GetUpperBound(1);
             int artV = 0;
+            RowVarTypes = new List<Variable>();
             for (int i = 0; i < initialA.GetLength(0); i++)
             {
                 if (eqTypes[i] == EqType.GreatherThan)
@@ -432,7 +441,7 @@ namespace Simplex
                         if (eqTypes[j] == EqType.GreatherThan || eqTypes[j] == EqType.Equal)
                         {
                             var t1 = t[j, i];
-                            Console.WriteLine($"t[{j}, {i}] = {t1}");
+                            // Console.WriteLine($"t[{j}, {i}] = {t1}");
                             sum += t1;
                         }
                     }

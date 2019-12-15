@@ -46,7 +46,7 @@ namespace Simplex
         {
             var o1 = new Options()
             {
-                GreaterThanEq = new List<EqType> { EqType.LessThan, EqType.LessThan },
+                Constraints = new List<EqType> { EqType.LessThan, EqType.LessThan },
                 Table = new double[,] {
                 { 1, -2, 2, 6},
                 { 1, 1, 2, 8},
@@ -62,7 +62,7 @@ namespace Simplex
 
             var o_a = new Options()
             {
-                GreaterThanEq = new List<EqType> { EqType.GreatherThan, EqType.LessThan },
+                Constraints = new List<EqType> { EqType.GreatherThan, EqType.LessThan },
                 Table = new double[,] {
                 { 1, 1, 6},
                 { 2, 3, 4 }
@@ -76,7 +76,7 @@ namespace Simplex
 
             var o_b = new Options()
             {
-                GreaterThanEq = new List<EqType> { EqType.Equal, EqType.Equal },
+                Constraints = new List<EqType> { EqType.Equal, EqType.Equal },
                 Table = new double[,] {
                 { 2, 1, 1, 4},
                 { 1, 1, 2, 2 }
@@ -89,7 +89,7 @@ namespace Simplex
 
             var o_c = new Options()
             {
-                GreaterThanEq = new List<EqType> { EqType.Equal, EqType.Equal, EqType.Equal },
+                Constraints = new List<EqType> { EqType.Equal, EqType.Equal, EqType.Equal },
                 Table = new double[,] {
                 { 1, 2, -1, 1, 0},
                 { 2, -2, 3, 3, 9},
@@ -103,7 +103,7 @@ namespace Simplex
 
             var o_4 = new Options()
             {
-                GreaterThanEq = new List<EqType> { EqType.GreatherThan, EqType.LessThan },
+                Constraints = new List<EqType> { EqType.GreatherThan, EqType.LessThan },
                 Table = new double[,] {
                 { 1, 1, 2},
                 { 2, 2, 4},
@@ -117,43 +117,57 @@ namespace Simplex
 
         static void BranchAndBound()
         {
-            //var o1 = new Options()
-            //{
-            //    GreaterThanEq = new List<EqType> { EqType.LessThan, EqType.LessThan },
-            //    Table = new double[,] {
-            //    { 1, -2, 2, 6},
-            //    { 1, 1, 2, 8},
+            var o = new Options()
+            {
+                Constraints = new List<EqType> { EqType.LessThan, EqType.LessThan },
+                Table = new double[,] {
+                { 10, 3, 52},
+                { 2, 3, 18},
 
-            //},
-            //    Z = new double[] { 1, -1, 2 }
+            },
+                Z = new double[] { 5, 6 }
 
-            //};
+            };
+            var s = new BranchAndBound.BranchAndBound(o);
+            s.Solve();
+
+            var o1 = new Options()
+            {
+                Constraints = new List<EqType> { EqType.LessThan, EqType.LessThan },
+                Table = new double[,] {
+                { 1, -2, 2, 6},
+                { 1, 1, 2, 8},
+
+            },
+                Z = new double[] { 1, -1, 2 }
+
+            };
 
 
-            //var s1 = new BranchAndBound.BranchAndBound(o1);
+            var s1 = new BranchAndBound.BranchAndBound(o1);
             //s1.Solve();
 
-            //var o2 = new Options()
-            //{
-            //    GreaterThanEq = new List<EqType> { EqType.LessThan, EqType.LessThan },
-            //    Table = new double[,] {
-            //    { -1, 1, 0},
-            //    { 6, 2, 21},
+            var o2 = new Options()
+            {
+                Constraints = new List<EqType> { EqType.LessThan, EqType.LessThan },
+                Table = new double[,] {
+                { -1, 1, 0},
+                { 6, 2, 21},
 
-            //},
-            //    Z = new double[] { 2, 1, 1 }
+            },
+                Z = new double[] { 2, 1 }
 
-            //};
+            };
 
 
-            //var s2 = new BranchAndBound.BranchAndBound(o2);
+            var s2 = new BranchAndBound.BranchAndBound(o2);
             //s2.Solve();
 
 
 
             var o3 = new Options()
             {
-                GreaterThanEq = new List<EqType> { EqType.LessThan, EqType.LessThan, EqType.LessThan },
+                Constraints = new List<EqType> { EqType.LessThan, EqType.LessThan, EqType.LessThan },
                 Table = new double[,] {
                 { 1, 2, 1, -1, 8},
                 { 1, 2, 0, 2, 7},
@@ -165,8 +179,8 @@ namespace Simplex
             };
 
 
-            var s3 = new BranchAndBound.BranchAndBound(o3);
-            s3.Solve();
+            //var s3 = new BranchAndBound.BranchAndBound(o3);
+            //s3.Solve();
         }
     }
 }
